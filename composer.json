@@ -15,8 +15,8 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "XorEncryption\\": "src/"
+        "psr-4": {
+            "Showapi\\": "src/"
         }
     }
 }

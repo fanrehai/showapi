@@ -3,12 +3,15 @@
 # @Date:   2019-11-28 14:33:52
 # @Filename: ApiDoc.php
 # @Last modified by:   fanrehai
-# @Last modified time: 2019-11-28 15:43:31
+# @Last modified time: 2019-11-28 16:03:46
 
-namespace ApiDoc;
+namespace Showapi;
 
 Class ApiDoc
 {
+    public function __construct(){
+
+    }
     /**
      * ShowAPI设置获取
      */
@@ -18,9 +21,9 @@ Class ApiDoc
      */
     public $apiToken;
 
-    public function say_hello()
+    public static function hello()
     {
-        return "hello world";
+        echo "hello world";
     }
 
     public function showdocApi($controllerName, $actionName, $info){
