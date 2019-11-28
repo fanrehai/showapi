@@ -1,0 +1,22 @@
+{
+    "name": "fanrehai/showapi",
+    "description": "auto api doc",
+    "keywords": [
+        "php",
+        "api doc"
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "authors": [
+        {
+            "name": "fanrehai",
+            "email": "fanrehai@qq.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "XorEncryption\\": "src/"
+        }
+    }
+}
