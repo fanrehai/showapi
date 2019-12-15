@@ -1,0 +1,9 @@
+
+{"id":"asd_888","controller":"asd","action":"888","method":"GET","params":["name","phone"],"desc":"暂无描述"}
+//----------------------------------------------//
+{"id":"asd_asddddd","controller":"asd","action":"asddddd","method":"GET","params":{"url":"https:\/\/qqe2.com","name":"欢迎使用JSON在线解析编辑器","array":{"JSON":"http:\/\/jsonlint.qqe2.com\/","Cron生成":"http:\/\/cron.qqe2.com\/","JS加密解密":"http:\/\/edit.qqe2.com\/"},"boolean":true,"null":null,"number":123,"object":{"a":[{"JSON1":"http:\/\/jsonlint.qqe2.com\/","Cron生成":"http:\/\/cron.qqe2.com\/","JS加密解密":"http:\/\/edit.qqe2.com\/"},{"JSON2":"http:\/\/jsonlint.qqe2.com\/","Cron生成":"http:\/\/cron.qqe2.com\/","JS加密解密":"http:\/\/edit.qqe2.com\/"}],"c":"d","e":"f"}},"desc":"暂无描述"}
+//----------------------------------------------//
+{"id":"asd_888","controller":"asd","action":"888","method":"GET","params":["name","phone","asd"],"desc":"暂无描述"}
+//----------------------------------------------//
+{"id":"asd_888","controller":"asd","action":"888","method":"GET","params":["name","phone","asd"],"desc":"暂无描述"}
+//----------------------------------------------//

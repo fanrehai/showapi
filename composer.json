@@ -6,7 +6,8 @@
         "api doc"
     ],
     "require": {
-        "php": ">=7.0.0"
+        "php": ">=7.0.0",
+        "ext-curl": "*"
     },
     "authors": [
         {
