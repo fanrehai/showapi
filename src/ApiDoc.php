@@ -25,7 +25,10 @@ Class ApiDoc
      * 项目API访问地址
      */
     private $projectUrl;
-
+    /**
+     * 语言
+     */
+    private $lang = 'zh_cn';
 //    public function __set($name, $value = null)
 //    {
 //        if(isset($this->$name))
@@ -44,12 +47,13 @@ Class ApiDoc
 //        return $this->$name;
 //    }
 
-    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl){
+    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $lang){
          $this->apiKey   = $apiKey;
          $this->apiToken = $apiToken;
          $this->apiUrl   = $apiUrl;
          $this->projectUrl = $projectUrl;
-//        var_dump($config);
+         $this->lang = $lang;
+
     }
 
 //$method = "PUT";
@@ -135,32 +139,29 @@ Class ApiDoc
         }
         $paramsMK = "\n**简要描述：**\n- ".$fileContent[$actionIds]['desc']."\n\n**请求URL：**\n- ` ".$this->projectUrl." `\n\n**请求方式：**\n- ".$fileContent[$actionIds]['method']."\n\n**参数：**\n\n|参数名|类型|说明|\n|:----|:-----|-----|\n".$paramsInfo."**返回示例**\n";
 
-//        $apiResult = json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
-//        $dataParams = '';
-//        $apiMk = $paramsMK."```\n".$apiResult."\n```\n**返回参数说明**\n\n|参数名|类型|说明|\n|:-----|:-----|-----|\n".$dataParams;
-//        $resultParamNameArr = [];
-//        foreach ($apiResult as $k => $v) {
-//            $resultParamNameArr[$k]['param_name'] = $k;
-//            $resultParamNameArr[$k]['param_type'] = gettype($v);
-//            if(is_array($v)){
-//                foreach ($v as $k1 => $v1) {
-//                    $resultParamNameArr[$k]['name'] = '---'.$k1;
-//                    $resultParamNameArr[$k]['param_type'] = gettype($v);
-//                }
-//            }
-//        }
         $resultParamNameArr = self::resultArrayHandle($apiResult);
-        $resultParamNameArr = self::resultArrayTransform($resultParamNameArr, $resultParamNameArr);
-//        array_walk($resultParamNameArr, 'resultArrayTransform');
-//        echo json_encode($resultParamNameArr);
-//        var_dump(json_encode($resultParamNameArr));
-//        var_dump($resultParamNameArr);
+        $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
+
+        $resultMK = '';
+        if(!empty($resultParamNameArr)){
+            foreach ($resultParamNameArr as &$v) {
+                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|无|\n";
+            }
+        }else{
+            $resultMK = "|无|无|无|\n";
+        }
+
+        $allMK = $paramsMK."```\n".json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."\n```\n**返回参数说明**\n\n|参数名|类型|说明|\n|:-----|:-----|-----|\n".$resultMK;
+
+
+//        $allMK .= $resultMK;
+
         $data = [
             "api_key"      => $this->apiKey,
             "api_token"    => $this->apiToken,
             "cat_name"     => $controllerName,
             "page_title"   => $actionName,
-            "page_content" => $apiMk
+            "page_content" => $allMK
         ];
         $this->doCurl($data, $this->apiUrl);
     }
@@ -219,6 +220,9 @@ Class ApiDoc
      */
     private function resultArrayHandle($apiResult, $index = 0)
     {
+        if(empty($apiResult)){
+            return false;
+        }
         $index += 1;
         $resultParamNameArr = [];
         foreach ($apiResult as $k => $v) {
@@ -252,11 +256,6 @@ Class ApiDoc
                     $v1['param_name'] = $level.$v1['param_name'];
                 }
                 unset($v['level']);
-//                $place = array_search($v, $resultParamNameArr);
-//                var_dump($resultParamNameArr);
-//                array_splice($v, $place, 0, $v['children']);
-//                $v =
-//                unset($v['children']);
             }
         }
         return $resultParamNameArr;
@@ -265,7 +264,11 @@ Class ApiDoc
     /**
      * 数组转换
      */
-    private function resultArrayTransform($data, $originData){
+    private function resultArrayTransform($data)
+    {
+        if(empty($data)){
+            return false;
+        }
         foreach ($data as &$v) {
             if(!empty($v['children'])){
                 $place = array_search($v, $data);
@@ -273,7 +276,7 @@ Class ApiDoc
                 foreach ($v['children'] as &$v1) {
                     if(!empty($v1['children'])){
                         $v2[] = $v1;
-                        $v1 = self::resultArrayTransform($v2, $data);
+                        $v1 = self::resultArrayTransform($v2);
                     }
                 }
                 unset($v['children']);
