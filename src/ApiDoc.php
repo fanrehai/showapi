@@ -29,23 +29,6 @@ Class ApiDoc
      * 语言
      */
     private $lang = 'zh_cn';
-//    public function __set($name, $value = null)
-//    {
-//        if(isset($this->$name))
-//        {
-//            throw new \InvalidArgumentException("参数不存在");
-//        }
-//        $this->$name = $value;
-//    }
-////
-//    public function __get($name)
-//    {
-//        if(!isset($this->$name))
-//        {
-//            throw new \InvalidArgumentException("参数不存在");
-//        }
-//        return $this->$name;
-//    }
 
     public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $lang){
          $this->apiKey   = $apiKey;
@@ -152,9 +135,6 @@ Class ApiDoc
         }
 
         $allMK = $paramsMK."```\n".json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."\n```\n**返回参数说明**\n\n|参数名|类型|说明|\n|:-----|:-----|-----|\n".$resultMK;
-
-
-//        $allMK .= $resultMK;
 
         $data = [
             "api_key"      => $this->apiKey,
