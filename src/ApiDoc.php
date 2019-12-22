@@ -10,59 +10,41 @@ namespace Showapi;
 Class ApiDoc
 {
     /**
+     * 语言
+     */
+    private $lang;
+    /**
      * Showdoc接口可以
      */
     private $apiKey;
-    /**
-     * Showdoc接口token
-     */
-    private $apiToken;
     /**
      * Showdoc接口写入地址
      */
     private $apiUrl;
     /**
+     * Showdoc接口token
+     */
+    private $apiToken;
+    /**
      * 项目API访问地址
      */
     private $projectUrl;
-    /**
-     * 语言
-     */
-    private $lang = 'zh_cn';
 
-    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $lang){
-         $this->apiKey   = $apiKey;
-         $this->apiToken = $apiToken;
-         $this->apiUrl   = $apiUrl;
-         $this->projectUrl = $projectUrl;
-         $this->lang = $lang;
-
+    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $lang = 'zh_cn'){//'en_us'
+        $this->lang       = $lang;
+        $this->apiKey     = $apiKey;
+        $this->apiUrl     = $apiUrl;
+        $this->apiToken   = $apiToken;
     }
-
-//$method = "PUT";
-//$varName = "_{$method}";
-//$_SERVER['REQUEST_METHOD'] === $method
-//    ? parse_str(file_get_contents('php://input', false , null, -1 , $_SERVER['CONTENT_LENGTH'] ), $$varName)
-//    : $$varName = [];
-//
-//var_dump($_PUT);
-//var_dump($_DELETE);
-//foreach ($_SERVER as $name => $value)
-//{
-//if (substr($name, 0, 5) == 'HTTP_')
-//{
-//$headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-//}
-//}
-//parse_str(file_get_contents('php://input'), $adata);
-
     /**
-     * @param $controllerName
-     * @param $actionName
-     * @param string $method 传输方式 Get Post Put Delete Patch
-     * @param $apiParams
+     * 保存至日志文件
+     * @param string $controllerName 控制器名称
+     * @param string $actionName     方法名称
+     * @param string $method         传输方式 Get Post Put Delete Patch
+     * @param array  $apiParams      接口需要的参数
+     * @param string $apiDesc        接口描述
      */
-    public function saveApiToLog($controllerName, $actionName, $apiParams = [], $apiDesc = '暂无描述')
+    public function saveApiToLog($controllerName, $actionName, $apiParams = [], $apiDesc = '')
     {
         if(!is_string($controllerName) || !is_string($actionName)){
             throw new \InvalidArgumentException("controllerName and actionName参数必须是字符串类型");
@@ -70,9 +52,10 @@ Class ApiDoc
         if(!is_array($apiParams)){
             throw new \InvalidArgumentException("apiParams参数不是一个有效数组");
         }
-        $actionIds = $controllerName.'_'.$actionName;
-        $fileContent = self::fileContentReadHandle();
-        $isHandle = 0;
+
+        $actionIds   = $controllerName.'_'.$actionName;
+        $fileContent = self::fileContentReadHandle($actionIds);
+        $isHandle    = 0;
         foreach ($fileContent as &$v) {
             if(!isset($v['id'])){
                 continue;
@@ -85,8 +68,11 @@ Class ApiDoc
         if($isHandle == 1){
             return ;
         }
-        // 获取参数传输方式
+        // 获取接收参数
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if(empty($apiDesc)){
+            $apiDesc = self::langTranslate('empty_desc');
+        }
         $writeContent = [
             'id'         => $actionIds,
             'controller' => $controllerName,
@@ -98,12 +84,15 @@ Class ApiDoc
         self::fileContentWriteHandle($writeContent);
     }
 
-    public function saveApiToWeb($controllerName, $actionName, $apiResult){
+    /**
+     * 保存至API页面
+     */
+    public function saveApiToWeb($controllerName, $actionName, $apiResult, $mkExport = false){
         if(!is_string($controllerName) || !is_string($actionName)){
-            throw new \InvalidArgumentException("controllerName and actionName参数必须是字符串类型");
+            throw new \InvalidArgumentException(self::langTranslate('The argument must be of string type'));
         }
         if(!is_array($apiResult) && is_null(@json_decode($apiResult, true))){
-            throw new \InvalidArgumentException('apiResult参数不是一个有效数组或JSON数据');
+            throw new \InvalidArgumentException(self::langTranslate('The parameter is not a valid array or JSON data'));
         }
         if(!is_array($apiResult)){
             $apiResult = json_decode($apiResult, true);
@@ -111,16 +100,31 @@ Class ApiDoc
         $actionIds = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
 
+        $langFiles = __DIR__.'/lang/'.$this->lang.'.php';
+        // 判断语言文件
+        if(!file_exists($langFiles)){
+            throw new \InvalidArgumentException($this->lang.self::langTranslate('Language pack file does not exist'));
+        }
+
         $apiParams = $fileContent[$actionIds]['params'];
         $paramsInfo = "";
         if(!empty($apiParams)){
             foreach ($apiParams as &$v) {
-                $paramsInfo .= "|".$v."|string|无|\n";
+                $paramsInfo .= "|".$v."|string|".self::langTranslate('Empty')."|\n";
             }
         }else{
-            $paramsInfo .= "|无|无|无|\n";
+            $paramsInfo .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
         }
-        $paramsMK = "\n**简要描述：**\n- ".$fileContent[$actionIds]['desc']."\n\n**请求URL：**\n- ` ".$this->projectUrl." `\n\n**请求方式：**\n- ".$fileContent[$actionIds]['method']."\n\n**参数：**\n\n|参数名|类型|说明|\n|:----|:-----|-----|\n".$paramsInfo."**返回示例**\n";
+        $projectUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
+        $paramsMK  = "\n**".self::langTranslate('Simple Desc')."：**\n- ".$fileContent[$actionIds]['desc']."\n\n**";
+        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$projectUrl." `\n\n**";
+        $paramsMK .= self::langTranslate('Request Method')."：**\n- ".$fileContent[$actionIds]['method']."\n\n**";
+        $paramsMK .= self::langTranslate('Param')."：**\n\n|";
+        $paramsMK .= self::langTranslate('Param Name')."|";
+        $paramsMK .= self::langTranslate('Type')."|";
+        $paramsMK .= self::langTranslate('Desc')."|\n";
+        $paramsMK .= "|:----|:-----|-----|\n".$paramsInfo."**";
+        $paramsMK .= self::langTranslate('Return Example')."**\n";
 
         $resultParamNameArr = self::resultArrayHandle($apiResult);
         $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
@@ -128,22 +132,44 @@ Class ApiDoc
         $resultMK = '';
         if(!empty($resultParamNameArr)){
             foreach ($resultParamNameArr as &$v) {
-                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|无|\n";
+                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|".self::langTranslate('Empty')."|\n";
             }
         }else{
-            $resultMK = "|无|无|无|\n";
+            $resultMK = "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
         }
 
-        $allMK = $paramsMK."```\n".json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."\n```\n**返回参数说明**\n\n|参数名|类型|说明|\n|:-----|:-----|-----|\n".$resultMK;
+        $paramsMK .= "```\n".json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."\n```\n**";
+        $paramsMK .= self::langTranslate('Return Param Desc')."**\n\n|";
+        $paramsMK .= self::langTranslate('Param Name')."|";
+        $paramsMK .= self::langTranslate('Type')."|";
+        $paramsMK .= self::langTranslate('Desc')."|\n|:-----|:-----|-----|\n".$resultMK;
 
-        $data = [
-            "api_key"      => $this->apiKey,
-            "api_token"    => $this->apiToken,
-            "cat_name"     => $controllerName,
-            "page_title"   => $actionName,
-            "page_content" => $allMK
-        ];
-        $this->doCurl($data, $this->apiUrl);
+        if(!$mkExport){
+            $data = [
+                "api_key"      => $this->apiKey,
+                "api_token"    => $this->apiToken,
+                "cat_name"     => $controllerName,
+                "page_title"   => $actionName,
+                "page_content" => $paramsMK
+            ];
+            $this->doCurl($data, $this->apiUrl);
+        }else{
+            echo $paramsMK;
+        }
+    }
+
+    /**
+     * 语音包翻译
+     * @param string $langName 要翻译的名称
+     */
+    private function langTranslate($langName)
+    {
+        $langFile = require(__DIR__.'/lang/'.$this->lang.'.php');
+        $nameKeys = array_keys($langFile);
+        if(!in_array($langName, $nameKeys)){
+            return '';
+        }
+        return $langFile[$langName];
     }
 
     /**
