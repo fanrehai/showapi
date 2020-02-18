@@ -30,8 +30,7 @@ Class ApiDoc
      */
     private $projectUrl;
 
-    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $lang = 'zh_cn'){//'en_us'
-        $this->lang       = $lang;
+    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl){
         $this->apiKey     = $apiKey;
         $this->apiUrl     = $apiUrl;
         $this->apiToken   = $apiToken;
@@ -100,12 +99,6 @@ Class ApiDoc
         $actionIds = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
 
-        $langFiles = __DIR__.'/lang/'.$this->lang.'.php';
-        // 判断语言文件
-        if(!file_exists($langFiles)){
-            throw new \InvalidArgumentException($this->lang.self::langTranslate('Language pack file does not exist'));
-        }
-
         $apiParams = $fileContent[$actionIds]['params'];
         $paramsInfo = "";
         if(!empty($apiParams)){
@@ -164,7 +157,7 @@ Class ApiDoc
      */
     private function langTranslate($langName)
     {
-        $langFile = require(__DIR__.'/lang/'.$this->lang.'.php');
+        $langFile = require(__DIR__.'/lang/zh_cn.php');
         $nameKeys = array_keys($langFile);
         if(!in_array($langName, $nameKeys)){
             return '';
