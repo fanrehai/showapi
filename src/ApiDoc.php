@@ -34,6 +34,7 @@ Class ApiDoc
         $this->apiKey     = $apiKey;
         $this->apiUrl     = $apiUrl;
         $this->apiToken   = $apiToken;
+        $this->projectUrl = $projectUrl;
     }
     /**
      * 保存至日志文件
@@ -85,6 +86,7 @@ Class ApiDoc
 
     /**
      * 保存至API页面
+     * @param $mkExport bool 是否直接输出
      */
     public function saveApiToWeb($controllerName, $actionName, $apiResult, $mkExport = false){
         if(!is_string($controllerName) || !is_string($actionName)){
@@ -108,9 +110,9 @@ Class ApiDoc
         }else{
             $paramsInfo .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
         }
-        $projectUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
+
         $paramsMK  = "\n**".self::langTranslate('Simple Desc')."：**\n- ".$fileContent[$actionIds]['desc']."\n\n**";
-        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$projectUrl." `\n\n**";
+        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$this->projectUrl." `\n\n**";
         $paramsMK .= self::langTranslate('Request Method')."：**\n- ".$fileContent[$actionIds]['method']."\n\n**";
         $paramsMK .= self::langTranslate('Param')."：**\n\n|";
         $paramsMK .= self::langTranslate('Param Name')."|";
