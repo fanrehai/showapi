@@ -29,10 +29,15 @@ Class ApiDoc
      * 项目API访问地址
      */
     private $projectUrl;
+    /**
+     * 文件最大限制
+     */
+    private $fileMax;
 
-    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl){
+    public function __construct($apiKey, $apiToken, $apiUrl, $projectUrl, $fileMax){
         $this->apiKey     = $apiKey;
         $this->apiUrl     = $apiUrl;
+        $this->fileMax    = $fileMax;
         $this->apiToken   = $apiToken;
         $this->projectUrl = $projectUrl;
     }
@@ -191,10 +196,12 @@ Class ApiDoc
             }
             $str = array_column($str, NULL, 'id');
 
-            $str_ids = array_column($str, 'id');
-            if(!in_array($actionIds, $str_ids)){
-                throw new \InvalidArgumentException('请先调用saveApiToLog方法');
-            }
+//            $str_ids = array_column($str, 'id');
+//            if(!in_array($actionIds, $str_ids)){
+//                var_dump($actionIds);
+//                var_dump($str_ids);
+//                throw new \InvalidArgumentException('请先调用saveApiToLog方法');
+//            }
         }
 
         return $str;
@@ -205,7 +212,11 @@ Class ApiDoc
      */
     private function fileContentWriteHandle($content)
     {
-        $this->fileContentReadHandle($content['id']);
+        $res = filesize('./apilogs.txt');
+        if($res / 1024 / 1024 > $this->fileMax){
+            echo 'The file size has exceeded the limit';
+        }
+        // $this->fileContentReadHandle();
         $apiLogs = fopen('./apilogs.txt', 'a+');
         $separator = '//----------------------------------------------//';
         $content = json_encode($content, JSON_UNESCAPED_UNICODE);
@@ -213,6 +224,16 @@ Class ApiDoc
         fwrite($apiLogs,PHP_EOL.$content.PHP_EOL.$separator);
         fclose($apiLogs);
 
+        return ;
+    }
+
+    /**
+     * 文件清空
+     */
+    public function saveApiClear()
+    {
+        $apiLogs = fopen('./apilogs.txt', 'w+');
+        fclose($apiLogs);
         return ;
     }
 

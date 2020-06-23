@@ -7,7 +7,8 @@ $apiKey   = '7d3*******************134';
 $apiToken = 'a59*******************110';
 $apiUrl   = 'https://yourwebsite/server/index.php?s=/api/item/updateByApi';
 $projectUrl = '*****';
-$api      = new ApiDoc($apiKey, $apiToken, $apiUrl, $projectUrl);
+$fileMax = '1';
+$api      = new ApiDoc($apiKey, $apiToken, $apiUrl, $projectUrl, $fileMax);
 
 $data = [
     "url"     => "https://qqe2.com",
@@ -37,6 +38,8 @@ $data = [
         "e" => "f"
     ]
 ];
-$api->saveApiToLog( 'asd', 'asddddd', ['name', 'phone', 'asd'] , '这还是一个测试接口');
-
+$api->saveApiToLog( 'asd', 'bbbb', ['name', 'phone', 'password', 'city'] , '这还是一个测试接口');
+//
 $api->saveApiToWeb('asd', 'asddddd', $data);
+
+$api->saveApiClear();
