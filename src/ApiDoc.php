@@ -40,17 +40,17 @@ Class ApiDoc
      * 保存至日志文件
      * @param string $controllerName 控制器名称
      * @param string $actionName     方法名称
-     * @param string $method         传输方式 Get Post Put Delete Patch
+//     * @param string $method         传输方式 Get Post Put Delete Patch
      * @param array  $apiParams      接口需要的参数
      * @param string $apiDesc        接口描述
      */
     public function saveApiToLog($controllerName, $actionName, $apiParams = [], $apiDesc = '')
     {
         if(!is_string($controllerName) || !is_string($actionName)){
-            throw new \InvalidArgumentException("controllerName and actionName参数必须是字符串类型");
+            throw new \InvalidArgumentException("The argument must be of string type");
         }
         if(!is_array($apiParams)){
-            throw new \InvalidArgumentException("apiParams参数不是一个有效数组");
+            throw new \InvalidArgumentException("The parameter is not a valid array");
         }
 
         $actionIds   = $controllerName.'_'.$actionName;
@@ -205,7 +205,7 @@ Class ApiDoc
      */
     private function fileContentWriteHandle($content)
     {
-        $this->fileContentReadHandle();
+        $this->fileContentReadHandle($content['id']);
         $apiLogs = fopen('./apilogs.txt', 'a+');
         $separator = '//----------------------------------------------//';
         $content = json_encode($content, JSON_UNESCAPED_UNICODE);
