@@ -106,6 +106,9 @@ Class ApiDoc
         $actionIds = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
 
+        if(empty($fileContent) || isset($fileContent[$actionIds])){
+            throw new \InvalidArgumentException(self::langTranslate('Please call saveApiToLog method first'));
+        }
         $apiParams = $fileContent[$actionIds]['params'];
         $paramsInfo = "";
         if(!empty($apiParams)){
@@ -177,7 +180,7 @@ Class ApiDoc
      */
     private function fileContentReadHandle($actionIds)
     {
-        $apiLogs = fopen('./apilogs.txt', 'a+');
+        $apiLogs = fopen(__DIR__.'/../apilogs.txt', 'a+');
         $str = "";
         //每次读取 1024 字节
         $buffer = 1024;
@@ -198,8 +201,6 @@ Class ApiDoc
 
 //            $str_ids = array_column($str, 'id');
 //            if(!in_array($actionIds, $str_ids)){
-//                var_dump($actionIds);
-//                var_dump($str_ids);
 //                throw new \InvalidArgumentException('请先调用saveApiToLog方法');
 //            }
         }
@@ -212,12 +213,12 @@ Class ApiDoc
      */
     private function fileContentWriteHandle($content)
     {
-        $res = filesize('./apilogs.txt');
+        $res = filesize(__DIR__.'/../apilogs.txt');
         if($res / 1024 / 1024 > $this->fileMax){
             echo 'The file size has exceeded the limit';
         }
         // $this->fileContentReadHandle();
-        $apiLogs = fopen('./apilogs.txt', 'a+');
+        $apiLogs = fopen(__DIR__.'/../apilogs.txt', 'a+');
         $separator = '//----------------------------------------------//';
         $content = json_encode($content, JSON_UNESCAPED_UNICODE);
 
@@ -232,7 +233,7 @@ Class ApiDoc
      */
     public function saveApiClear()
     {
-        $apiLogs = fopen('./apilogs.txt', 'w+');
+        $apiLogs = fopen(__DIR__.'/../apilogs.txt', 'w+');
         fclose($apiLogs);
         return ;
     }
@@ -349,7 +350,7 @@ Class ApiDoc
         $result = curl_exec($curl);
         $errs   = curl_error($curl);
         if (curl_errno($curl)) {
-            return curl_error($curl);
+            throw new \InvalidArgumentException(curl_error($curl));
         }
         //关闭URL请求
         curl_close($curl);

@@ -38,8 +38,9 @@ $data = [
         "e" => "f"
     ]
 ];
+// 保存至文件
 $api->saveApiToLog( 'asd', 'bbbb', ['name', 'phone', 'password', 'city'] , '这还是一个测试接口');
-//
+// 保存至服务器
 $api->saveApiToWeb('asd', 'asddddd', $data);
-
-$api->saveApiClear();
+// 内容情况
+//$api->saveApiClear();
