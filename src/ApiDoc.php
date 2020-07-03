@@ -115,7 +115,7 @@ Class ApiDoc
         $paramsInfo = "";
         if(!empty($apiParams)){
             foreach ($apiParams as &$v) {
-                $paramsInfo .= "|".$v."|string|".self::langTranslate('Empty')."|\n";
+                $paramsInfo .= "|".$v."|".gettype($v)."|".self::langTranslate(array_merge(array_filter(explode('-', $v)))[0])."|\n";
             }
         }else{
             $paramsInfo .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
@@ -137,7 +137,7 @@ Class ApiDoc
         $resultMK = '';
         if(!empty($resultParamNameArr)){
             foreach ($resultParamNameArr as &$v) {
-                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|".self::langTranslate('Empty')."|\n";
+                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|".self::langTranslate(array_merge(array_filter(explode('-', $v['param_name'])))[0])."|\n";
             }
         }else{
             $resultMK = "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
@@ -171,7 +171,7 @@ Class ApiDoc
     {
         $langFile = require(__DIR__.'/lang/zh_cn.php');
         $nameKeys = array_keys($langFile);
-        if(!in_array($langName, $nameKeys)){
+        if(!in_array($langName, $nameKeys, true) && !isset($langFile[$langName])){
             return '';
         }
         return $langFile[$langName];
