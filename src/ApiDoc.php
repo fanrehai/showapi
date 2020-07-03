@@ -48,8 +48,9 @@ Class ApiDoc
 //     * @param string $method         传输方式 Get Post Put Delete Patch
      * @param array  $apiParams      接口需要的参数
      * @param string $apiDesc        接口描述
+     * @param string $requestUrl     访问地址
      */
-    public function saveApiToLog($controllerName, $actionName, $apiParams = [], $apiDesc = '')
+    public function saveApiToLog($controllerName, $actionName, $apiParams = [], $apiDesc = '', $requestUrl)
     {
         if(!is_string($controllerName) || !is_string($actionName)){
             throw new \InvalidArgumentException("The argument must be of string type");
@@ -79,12 +80,13 @@ Class ApiDoc
             $apiDesc = self::langTranslate('empty_desc');
         }
         $writeContent = [
-            'id'         => $actionIds,
-            'controller' => $controllerName,
-            'action'     => $actionName,
-            'method'     => $method,
-            'params'     => $apiParams,
-            'desc'       => $apiDesc
+            'id'          => $actionIds,
+            'controller'  => $controllerName,
+            'action'      => $actionName,
+            'method'      => $method,
+            'params'      => $apiParams,
+            'desc'        => $apiDesc,
+            'request_url' => $requestUrl
         ];
         self::fileContentWriteHandle($writeContent);
     }
@@ -120,7 +122,7 @@ Class ApiDoc
         }
 
         $paramsMK  = "\n**".self::langTranslate('Simple Desc')."：**\n- ".$fileContent[$actionIds]['desc']."\n\n**";
-        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$this->projectUrl." `\n\n**";
+        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$this->projectUrl.'/'.$fileContent[$actionIds]['request_url']." `\n\n**";
         $paramsMK .= self::langTranslate('Request Method')."：**\n- ".$fileContent[$actionIds]['method']."\n\n**";
         $paramsMK .= self::langTranslate('Param')."：**\n\n|";
         $paramsMK .= self::langTranslate('Param Name')."|";
