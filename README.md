@@ -1,5 +1,11 @@
 # showapi
 这是一个根据代码返回结果自动生成文档的插件
+
+## composer安装
+```
+composer require fanrehai/showapi
+```
+
 ```
 $apiKey   = '7d3*******************134';
 $apiToken = 'a59*******************110';
