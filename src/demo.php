@@ -39,7 +39,7 @@ $data = [
     ]
 ];
 // 保存至文件
-$api->saveApiToLog( 'asd', 'bbbb', ['name', 'phone', 'password', 'city'] , '这还是一个测试接口');
+$api->saveApiToLog( 'asd', 'bbbb', ['name', 'phone', 'password', 'city'] , '这还是一个测试接口', 'index/index');
 // 保存至服务器
 $api->saveApiToWeb('asd', 'asddddd', $data);
 // 内容情况

@@ -58,6 +58,20 @@ Class ApiDoc
         if(!is_array($apiParams)){
             throw new \InvalidArgumentException("The parameter is not a valid array");
         }
+        // 获取头部参数
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        $header_arr = ['Connection', 'Accept-Encoding', 'Host', 'Postman-Token', 'Cache-Control', 'Accept', 'User-Agent'];
+        $diff = array_diff(array_keys($headers), $header_arr);
+        if(!empty($diff)){
+            foreach ($diff as &$v) {
+                $v = '[header]'.$v;
+            }
+            $apiParams = array_merge($diff, $apiParams);
+        }
 
         $actionIds   = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
