@@ -20,12 +20,12 @@ $api      = new ApiDoc($apiKey, $apiToken, $apiUrl, $projectUrl, $fileMax);
 3. fileMax是限制文件大小参数，当超过限制大小时会返回一个错误信息，单位是MB
 
 #
-- $api->saveApiToLog( '控制器名称', '函数名称', ['参数名称', '参数名'] , '函数介绍');
+- $api->saveApiToLog( '控制器名称', '函数名称', ['参数名称', '参数名'] , '函数介绍', '接口访问地址');
 
 saveApiToLog方法会把接口信息保存在文件中，等待下一次调用
 用法：
 ```
-$api->saveApiToLog( 'Login', 'login', ['name', 'password'] , '用户基本登录接口');
+$api->saveApiToLog( 'Login', 'login', ['name', 'password'] , '用户基本登录接口', 'index/index');
 ```
 
 - $api->saveApiToWeb('控制器名称', '函数名称', 返回的参数，数组的格式，是否直接输出(默认为false));
@@ -41,3 +41,5 @@ $api->saveApiToWeb('Login', 'login', $data, true);
 ```
 $api->saveApiClear();
 ```
+
+- 为方便参数的翻译，项目内有一个语言文件夹，修改里面的文件会替换所有接口的参数翻译后的名称。可自行扩展 :)
