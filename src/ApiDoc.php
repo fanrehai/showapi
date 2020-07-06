@@ -151,6 +151,9 @@ Class ApiDoc
         $resultMK = '';
         if(!empty($resultParamNameArr)){
             foreach ($resultParamNameArr as &$v) {
+                if(count(array_merge(array_filter(explode('-', $v['param_name'])))) == 0){
+                    continue;
+                }
                 $resultMK .= "|".$v['param_name']."|".$v['param_type']."|".self::langTranslate(array_merge(array_filter(explode('-', $v['param_name'])))[0])."|\n";
             }
         }else{
