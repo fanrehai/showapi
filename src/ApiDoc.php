@@ -66,12 +66,12 @@ Class ApiDoc
         }
         $header_arr = ['Connection', 'Accept-Encoding', 'Host', 'Postman-Token', 'Cache-Control', 'Accept', 'User-Agent'];
         $diff = array_diff(array_keys($headers), $header_arr);
-        if(!empty($diff)){
-            foreach ($diff as &$v) {
-                $v = '[header]'.$v;
-            }
-            $apiParams = array_merge($diff, $apiParams);
-        }
+//        if(!empty($diff)){
+//            foreach ($diff as &$v) {
+//                $v = '[header]'.$v;
+//            }
+//            $apiParams = array_merge($diff, $apiParams);
+//        }
 
         $actionIds   = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
@@ -98,6 +98,7 @@ Class ApiDoc
             'controller'  => $controllerName,
             'action'      => $actionName,
             'method'      => $method,
+            'header'      => $diff,
             'params'      => $apiParams,
             'desc'        => $apiDesc,
             'request_url' => $requestUrl
@@ -122,26 +123,40 @@ Class ApiDoc
         $actionIds = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle($actionIds);
 
-        if(empty($fileContent) || isset($fileContent[$actionIds])){
+        if(empty($fileContent) || !isset($fileContent[$actionIds])){
             throw new \InvalidArgumentException(self::langTranslate('Please call saveApiToLog method first'));
         }
         $apiParams = $fileContent[$actionIds]['params'];
         $paramsInfo = "";
         if(!empty($apiParams)){
             foreach ($apiParams as &$v) {
-                $paramsInfo .= "|".$v."|".gettype($v)."|".self::langTranslate(array_merge(array_filter(explode('-', $v)))[0])."|\n";
+                $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
+                $paramsInfo .= "|".$v."|".gettype($v)."|".$desc."|\n";
             }
         }else{
             $paramsInfo .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
         }
 
+        $headerParams = $fileContent[$actionIds]['header'];
+        $paramsInfob = "";
+        if(!empty($headerParams)){
+            foreach ($headerParams as &$v) {
+                $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
+                $paramsInfob .= "|".$v."|".gettype($v)."|".$desc."|\n";
+            }
+        }else{
+            $paramsInfob .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
+        }
+
         $paramsMK  = "\n**".self::langTranslate('Simple Desc')."：**\n- ".$fileContent[$actionIds]['desc']."\n\n**";
         $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$this->projectUrl.'/'.$fileContent[$actionIds]['request_url']." `\n\n**";
         $paramsMK .= self::langTranslate('Request Method')."：**\n- ".$fileContent[$actionIds]['method']."\n\n**";
+        $paramsMK .= "Header：**\n\n|";
+        $paramsMK .= self::langTranslate('Param Name')."|".self::langTranslate('Type')."|".self::langTranslate('Desc')."|\n";
+        $paramsMK .= "|:----|:-----|-----|\n".$paramsInfob."**";
+
         $paramsMK .= self::langTranslate('Param')."：**\n\n|";
-        $paramsMK .= self::langTranslate('Param Name')."|";
-        $paramsMK .= self::langTranslate('Type')."|";
-        $paramsMK .= self::langTranslate('Desc')."|\n";
+        $paramsMK .= self::langTranslate('Param Name')."|".self::langTranslate('Type')."|".self::langTranslate('Desc')."|\n";
         $paramsMK .= "|:----|:-----|-----|\n".$paramsInfo."**";
         $paramsMK .= self::langTranslate('Return Example')."**\n";
 
