@@ -74,7 +74,7 @@ Class ApiDoc
 //        }
 
         $actionIds   = $controllerName.'_'.$actionName;
-        $fileContent = self::fileContentReadHandle($actionIds);
+        $fileContent = self::fileContentReadHandle();
         $isHandle    = 0;
         foreach ($fileContent as &$v) {
             if(!isset($v['id'])){
@@ -121,7 +121,7 @@ Class ApiDoc
             $apiResult = json_decode($apiResult, true);
         }
         $actionIds = $controllerName.'_'.$actionName;
-        $fileContent = self::fileContentReadHandle($actionIds);
+        $fileContent = self::fileContentReadHandle();
 
         if(empty($fileContent) || !isset($fileContent[$actionIds])){
             throw new \InvalidArgumentException(self::langTranslate('Please call saveApiToLog method first'));
@@ -162,6 +162,8 @@ Class ApiDoc
 
         $resultParamNameArr = self::resultArrayHandle($apiResult);
         $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
+        // 替补解决多维数组中多参数的情况
+        $resultParamNameArr = self::resultArrayFurtherHandle($resultParamNameArr);
 
         $resultMK = '';
         if(!empty($resultParamNameArr)){
@@ -181,7 +183,7 @@ Class ApiDoc
         $paramsMK .= self::langTranslate('Type')."|";
         $paramsMK .= self::langTranslate('Desc')."|\n|:-----|:-----|-----|\n".$resultMK;
 
-        if(!$mkExport){
+        if($mkExport){
             $data = [
                 "api_key"      => $this->apiKey,
                 "api_token"    => $this->apiToken,
@@ -211,8 +213,9 @@ Class ApiDoc
 
     /**
      * 文件读取操作
+     * @return array
      */
-    private function fileContentReadHandle($actionIds)
+    private function fileContentReadHandle()
     {
         $apiLogs = fopen(__DIR__.'/../apilogs.txt', 'a+');
         $str = "";
@@ -244,6 +247,7 @@ Class ApiDoc
 
     /**
      * 文件写入操作
+     * @param $content
      */
     private function fileContentWriteHandle($content)
     {
@@ -274,11 +278,14 @@ Class ApiDoc
 
     /**
      * 数组操作
+     * @param $apiResult
+     * @param int $index
+     * @return array
      */
     private function resultArrayHandle($apiResult, $index = 0)
     {
         if(empty($apiResult)){
-            return false;
+            return [];
         }
         $index += 1;
         $resultParamNameArr = [];
@@ -320,11 +327,13 @@ Class ApiDoc
 
     /**
      * 数组转换
+     * @param $data
+     * @return array
      */
     private function resultArrayTransform($data)
     {
         if(empty($data)){
-            return false;
+            return [];
         }
         foreach ($data as &$v) {
             if(!empty($v['children'])){
@@ -354,6 +363,37 @@ Class ApiDoc
             }
         }
         return $data;
+    }
+
+    /**
+     * 数组进一步操作
+     * @param $data
+     * @return array
+     */
+    private function resultArrayFurtherHandle($data)
+    {
+        if(empty($data)){
+            return [];
+        }
+
+        $newArra = [];
+        $newArrb = [];
+        list($arr1, $arr2) = [array_column($data, 'param_name'), array_column($data, 'param_type')];
+        list($arr1, $arr2) = [array_diff_assoc($arr1, array_unique($arr1)), array_diff_assoc($arr2, array_unique($arr2))];
+        foreach($arr1 as $k => $v)
+            if(array_key_exists($k, $arr2))
+                $result[] = $v;
+//                $result[] = $data[$k];
+
+        foreach ($data as $k => $v) {
+            if(in_array($v['param_name'], $result) && in_array($v['param_name'], $newArra)){
+                continue;
+            }else{
+                array_push($newArrb, $v);
+                array_push($newArra, $v['param_name']);
+            }
+        }
+        return $newArrb;
     }
 
     private function doCurl($data, $url){
