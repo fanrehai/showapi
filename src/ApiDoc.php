@@ -183,7 +183,7 @@ Class ApiDoc
         $paramsMK .= self::langTranslate('Type')."|";
         $paramsMK .= self::langTranslate('Desc')."|\n|:-----|:-----|-----|\n".$resultMK;
 
-        if($mkExport){
+        if(!$mkExport){
             $data = [
                 "api_key"      => $this->apiKey,
                 "api_token"    => $this->apiToken,
