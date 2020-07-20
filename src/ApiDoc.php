@@ -89,7 +89,7 @@ Class ApiDoc
             return ;
         }
         // 获取接收参数
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $method = $_SERVER['REQUEST_METHOD'] ? $_SERVER['REQUEST_METHOD'] : 'GET';
         if(empty($apiDesc)){
             $apiDesc = self::langTranslate('empty_desc');
         }
@@ -378,6 +378,7 @@ Class ApiDoc
 
         $newArra = [];
         $newArrb = [];
+        $result  = [];
         list($arr1, $arr2) = [array_column($data, 'param_name'), array_column($data, 'param_type')];
         list($arr1, $arr2) = [array_diff_assoc($arr1, array_unique($arr1)), array_diff_assoc($arr2, array_unique($arr2))];
         foreach($arr1 as $k => $v)
