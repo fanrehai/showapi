@@ -123,77 +123,86 @@ Class ApiDoc
         $actionIds = $controllerName.'_'.$actionName;
         $fileContent = self::fileContentReadHandle();
 
-        if(empty($fileContent) || !isset($fileContent[$actionIds])){
-            throw new \InvalidArgumentException(self::langTranslate('Please call saveApiToLog method first'));
-        }
-        $apiParams = $fileContent[$actionIds]['params'];
-        $paramsInfo = "";
-        if(!empty($apiParams)){
-            foreach ($apiParams as &$v) {
-                $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
-                $paramsInfo .= "|".$v."|".gettype($v)."|".$desc."|\n";
+        if(!empty($fileContent) && isset($fileContent[$actionIds])) {
+            $apiParams = $fileContent[$actionIds]['params'];
+            $paramsInfo = "";
+
+            // 判断参数数组
+            $keys = array_keys($apiParams);
+            $values = array_values($apiParams);
+            if ($this->JudegSortArray($keys)) {
+                $apiParams = $values;
+            } else {
+                $apiParams = $keys;
             }
-        }else{
-            $paramsInfo .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
-        }
 
-        $headerParams = $fileContent[$actionIds]['header'];
-        $paramsInfob = "";
-        if(!empty($headerParams)){
-            foreach ($headerParams as &$v) {
-                $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
-                $paramsInfob .= "|".$v."|".gettype($v)."|".$desc."|\n";
-            }
-        }else{
-            $paramsInfob .= "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
-        }
-
-        $paramsMK  = "\n**".self::langTranslate('Simple Desc')."：**\n- ".$fileContent[$actionIds]['desc']."\n\n**";
-        $paramsMK .= self::langTranslate('Request Url')."：**\n- ` ".$this->projectUrl.'/'.$fileContent[$actionIds]['request_url']." `\n\n**";
-        $paramsMK .= self::langTranslate('Request Method')."：**\n- ".$fileContent[$actionIds]['method']."\n\n**";
-        $paramsMK .= "Header：**\n\n|";
-        $paramsMK .= self::langTranslate('Param Name')."|".self::langTranslate('Type')."|".self::langTranslate('Desc')."|\n";
-        $paramsMK .= "|:----|:-----|-----|\n".$paramsInfob."**";
-
-        $paramsMK .= self::langTranslate('Param')."：**\n\n|";
-        $paramsMK .= self::langTranslate('Param Name')."|".self::langTranslate('Type')."|".self::langTranslate('Desc')."|\n";
-        $paramsMK .= "|:----|:-----|-----|\n".$paramsInfo."**";
-        $paramsMK .= self::langTranslate('Return Example')."**\n";
-
-        $resultParamNameArr = self::resultArrayHandle($apiResult);
-        $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
-        // 替补解决多维数组中多参数的情况
-        $resultParamNameArr = self::resultArrayFurtherHandle($resultParamNameArr);
-
-        $resultMK = '';
-        if(!empty($resultParamNameArr)){
-            foreach ($resultParamNameArr as &$v) {
-                if(count(array_merge(array_filter(explode('-', $v['param_name'])))) == 0){
-                    continue;
+            if (!empty($apiParams)) {
+                foreach ($apiParams as &$v) {
+                    $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
+                    $paramsInfo .= "|" . $v . "|" . gettype($v) . "|" . $desc . "|\n";
                 }
-                $resultMK .= "|".$v['param_name']."|".$v['param_type']."|".self::langTranslate(array_merge(array_filter(explode('-', $v['param_name'])))[0])."|\n";
+            } else {
+                $paramsInfo .= "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|\n";
             }
-        }else{
-            $resultMK = "|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|".self::langTranslate('Empty')."|\n";
-        }
 
-        $paramsMK .= "```\n".json_encode($apiResult, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."\n```\n**";
-        $paramsMK .= self::langTranslate('Return Param Desc')."**\n\n|";
-        $paramsMK .= self::langTranslate('Param Name')."|";
-        $paramsMK .= self::langTranslate('Type')."|";
-        $paramsMK .= self::langTranslate('Desc')."|\n|:-----|:-----|-----|\n".$resultMK;
+            $headerParams = $fileContent[$actionIds]['header'];
+            $paramsInfob = "";
+            if (!empty($headerParams)) {
+                foreach ($headerParams as &$v) {
+                    $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
+                    $paramsInfob .= "|" . $v . "|" . gettype($v) . "|" . $desc . "|\n";
+                }
+            } else {
+                $paramsInfob .= "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|\n";
+            }
 
-        if(!$mkExport){
-            $data = [
-                "api_key"      => $this->apiKey,
-                "api_token"    => $this->apiToken,
-                "cat_name"     => $controllerName,
-                "page_title"   => $actionName,
-                "page_content" => $paramsMK
-            ];
-            $this->doCurl($data, $this->apiUrl);
-        }else{
-            echo $paramsMK;
+            $paramsMK = "\n**" . self::langTranslate('Simple Desc') . "：**\n- " . $fileContent[$actionIds]['desc'] . "\n\n**";
+            $paramsMK .= self::langTranslate('Request Url') . "：**\n- ` " . $this->projectUrl . '/' . $fileContent[$actionIds]['request_url'] . " `\n\n**";
+            $paramsMK .= self::langTranslate('Request Method') . "：**\n- " . $fileContent[$actionIds]['method'] . "\n\n**";
+            $paramsMK .= "Header：**\n\n|";
+            $paramsMK .= self::langTranslate('Param Name') . "|" . self::langTranslate('Type') . "|" . self::langTranslate('Desc') . "|\n";
+            $paramsMK .= "|:----|:-----|-----|\n" . $paramsInfob . "**";
+
+            $paramsMK .= self::langTranslate('Param') . "：**\n\n|";
+            $paramsMK .= self::langTranslate('Param Name') . "|" . self::langTranslate('Type') . "|" . self::langTranslate('Desc') . "|\n";
+            $paramsMK .= "|:----|:-----|-----|\n" . $paramsInfo . "**";
+            $paramsMK .= self::langTranslate('Return Example') . "**\n";
+
+            $resultParamNameArr = self::resultArrayHandle($apiResult);
+            $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
+            // 替补解决多维数组中多参数的情况
+            $resultParamNameArr = self::resultArrayFurtherHandle($resultParamNameArr);
+
+            $resultMK = '';
+            if (!empty($resultParamNameArr)) {
+                foreach ($resultParamNameArr as &$v) {
+                    if (count(array_merge(array_filter(explode('-', $v['param_name'])))) == 0) {
+                        continue;
+                    }
+                    $resultMK .= "|" . $v['param_name'] . "|" . $v['param_type'] . "|" . self::langTranslate(array_merge(array_filter(explode('-', $v['param_name'])))[0]) . "|\n";
+                }
+            } else {
+                $resultMK = "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|\n";
+            }
+
+            $paramsMK .= "```\n" . json_encode($apiResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n```\n**";
+            $paramsMK .= self::langTranslate('Return Param Desc') . "**\n\n|";
+            $paramsMK .= self::langTranslate('Param Name') . "|";
+            $paramsMK .= self::langTranslate('Type') . "|";
+            $paramsMK .= self::langTranslate('Desc') . "|\n|:-----|:-----|-----|\n" . $resultMK;
+
+            if (!$mkExport) {
+                $data = [
+                    "api_key" => $this->apiKey,
+                    "api_token" => $this->apiToken,
+                    "cat_name" => $controllerName,
+                    "page_title" => $actionName,
+                    "page_content" => $paramsMK
+                ];
+                $this->doCurl($data, $this->apiUrl);
+            } else {
+                echo $paramsMK;
+            }
         }
     }
 
@@ -429,5 +438,55 @@ Class ApiDoc
         }
         //关闭URL请求
         curl_close($curl);
+    }
+
+    /**
+     * 判断数组是否有序
+     * @param $array array 数组
+     * @return int 0为无序，1为有序
+     */
+    private function JudegSortArray($array) {
+        $len = count($array);
+        $flag = -1;
+        // 判断数组可能为升序or逆序
+        for ($firLoc = 0, $secLoc = 1; $secLoc < $len; $firLoc ++, $secLoc ++) {
+            if ($array[$firLoc] < $array[$secLoc]) {
+                $flag = 0;
+                break;
+            }
+            if ($array[$firLoc] > $array[$secLoc]) {
+                $flag = 1;
+                break;
+            }
+        }
+
+        if ($flag == -1) {
+            return 0;
+        }
+
+        $temp = $flag;
+        for($i = $secLoc; $i < $len - 1; $i ++) {
+            if ($flag == 0) {
+                if ($array [$i] <= $array [$i + 1]) {
+                    continue;
+                } else {
+                    $flag = 1;
+                    break;
+                }
+            }
+            if ($flag == 1) {
+                if ($array [$i] >= $array [$i + 1]) {
+                    continue;
+                } else {
+                    $flag = 0;
+                    break;
+                }
+            }
+        }
+        if ($flag != $temp) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }
