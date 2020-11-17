@@ -108,6 +108,9 @@ Class ApiDoc
 
     /**
      * 保存至API页面
+     * @param $controllerName
+     * @param $actionName
+     * @param $apiResult
      * @param $mkExport bool 是否直接输出
      */
     public function saveApiToWeb($controllerName, $actionName, $apiResult, $mkExport = false){
@@ -261,9 +264,9 @@ Class ApiDoc
     private function fileContentWriteHandle($content)
     {
         $res = filesize(__DIR__.'/../apilogs.txt');
-        if($res / 1024 / 1024 > $this->fileMax){
-            echo 'The file size has exceeded the limit';
-        }
+//        if($res / 1024 / 1024 > $this->fileMax){
+//            echo 'The file size has exceeded the limit';
+//        }
         // $this->fileContentReadHandle();
         $apiLogs = fopen(__DIR__.'/../apilogs.txt', 'a+');
         $separator = '//----------------------------------------------//';
@@ -316,6 +319,8 @@ Class ApiDoc
             $resultParamNameArr = array_values($resultParamNameArr);
         }
 
+        $oneDim = [];
+        $MultiDim = [];
         foreach ($resultParamNameArr as &$v) {
             if(is_array($v) && count($v) == 1){
                 $v = array_shift($v);
@@ -329,8 +334,20 @@ Class ApiDoc
                     $v1['param_name'] = $level.$v1['param_name'];
                 }
                 unset($v['level']);
+                $MultiDim[] = $v;
+            }else{
+                $oneDim[] = $v;
             }
         }
+        // 参数排序
+        if($oneDim&&$MultiDim){
+            $resultParamNameArr = array_merge($oneDim, $MultiDim);
+        }elseif($oneDim){
+            $resultParamNameArr = $oneDim;
+        }else{
+            $resultParamNameArr = $MultiDim;
+        }
+
         return $resultParamNameArr;
     }
 
