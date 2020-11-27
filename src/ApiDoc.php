@@ -108,9 +108,9 @@ Class ApiDoc
 
     /**
      * 保存至API页面
-     * @param $controllerName
-     * @param $actionName
-     * @param $apiResult
+     * @param $controllerName  string 控制器名称
+     * @param $actionName      string 方法名称
+     * @param $apiResult       array  数据
      * @param $mkExport bool 是否直接输出
      */
     public function saveApiToWeb($controllerName, $actionName, $apiResult, $mkExport = false){
@@ -133,7 +133,7 @@ Class ApiDoc
             // 判断参数数组
             $keys = array_keys($apiParams);
             $values = array_values($apiParams);
-            if ($this->JudegSortArray($keys)) {
+            if ($this->judegSortArray($keys) && $this->numericArray($keys)) {
                 $apiParams = $values;
             } else {
                 $apiParams = $keys;
@@ -263,7 +263,7 @@ Class ApiDoc
      */
     private function fileContentWriteHandle($content)
     {
-        $res = filesize(__DIR__.'/../apilogs.txt');
+//        $res = filesize('./apilogs.txt');
 //        if($res / 1024 / 1024 > $this->fileMax){
 //            echo 'The file size has exceeded the limit';
 //        }
@@ -503,6 +503,29 @@ Class ApiDoc
         if ($flag != $temp) {
             return 0;
         } else {
+            return 1;
+        }
+    }
+
+    /**
+     * 判断数组
+     * @param $array
+     * @return int 0为无序，1为有序
+     */
+    private function numericArray($array)
+    {
+        $num = 0;
+        $all = count($array);
+        foreach ($array as &$v) {
+            if(is_numeric($v)){
+                $num += 1;
+            }else{
+                $num += 0;
+            }
+        }
+        if($num != $all){
+            return 0;
+        }else{
             return 1;
         }
     }
