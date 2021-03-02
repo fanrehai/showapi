@@ -65,7 +65,7 @@ Class ApiDoc
             }
         }
         $header_arr = ['Connection', 'Accept-Encoding', 'Host', 'Postman-Token', 'Cache-Control', 'Accept', 'User-Agent'];
-        $diff = array_diff(array_keys($headers), $header_arr);
+        $diff = array_merge(array_diff(array_keys($headers), $header_arr));
 //        if(!empty($diff)){
 //            foreach ($diff as &$v) {
 //                $v = '[header]'.$v;
@@ -138,7 +138,6 @@ Class ApiDoc
             } else {
                 $apiParams = $keys;
             }
-
             if (!empty($apiParams)) {
                 foreach ($apiParams as &$v) {
                     $desc = self::langTranslate(array_merge(array_filter(explode('-', $v)))[0]) ?: self::langTranslate('Empty');
@@ -158,23 +157,25 @@ Class ApiDoc
             } else {
                 $paramsInfob .= "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|\n";
             }
-
             $paramsMK = "\n**" . self::langTranslate('Simple Desc') . "：**\n- " . $fileContent[$actionIds]['desc'] . "\n\n**";
             $paramsMK .= self::langTranslate('Request Url') . "：**\n- ` " . $this->projectUrl . '/' . $fileContent[$actionIds]['request_url'] . " `\n\n**";
             $paramsMK .= self::langTranslate('Request Method') . "：**\n- " . $fileContent[$actionIds]['method'] . "\n\n**";
             $paramsMK .= "Header：**\n\n|";
             $paramsMK .= self::langTranslate('Param Name') . "|" . self::langTranslate('Type') . "|" . self::langTranslate('Desc') . "|\n";
             $paramsMK .= "|:----|:-----|-----|\n" . $paramsInfob . "**";
-
             $paramsMK .= self::langTranslate('Param') . "：**\n\n|";
             $paramsMK .= self::langTranslate('Param Name') . "|" . self::langTranslate('Type') . "|" . self::langTranslate('Desc') . "|\n";
             $paramsMK .= "|:----|:-----|-----|\n" . $paramsInfo . "**";
             $paramsMK .= self::langTranslate('Return Example') . "**\n";
-
+            //多维数组处理
             $resultParamNameArr = self::resultArrayHandle($apiResult);
             $resultParamNameArr = self::resultArrayTransform($resultParamNameArr);
             // 替补解决多维数组中多参数的情况
             $resultParamNameArr = self::resultArrayFurtherHandle($resultParamNameArr);
+            // 原始数组去重
+            $apiResultMK = self::resultArrayHandle($apiResult, 1);
+            // 转回数组格式
+            $apiResultMK = self::toArrayHandle($apiResultMK);
 
             $resultMK = '';
             if (!empty($resultParamNameArr)) {
@@ -188,7 +189,7 @@ Class ApiDoc
                 $resultMK = "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|" . self::langTranslate('Empty') . "|\n";
             }
 
-            $paramsMK .= "```\n" . json_encode($apiResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n```\n**";
+            $paramsMK .= "```\n" . json_encode($apiResultMK, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n```\n**";
             $paramsMK .= self::langTranslate('Return Param Desc') . "**\n\n|";
             $paramsMK .= self::langTranslate('Param Name') . "|";
             $paramsMK .= self::langTranslate('Type') . "|";
@@ -199,7 +200,7 @@ Class ApiDoc
                     "api_key" => $this->apiKey,
                     "api_token" => $this->apiToken,
                     "cat_name" => $controllerName,
-                    "page_title" => $actionName,
+                    "page_title" => $fileContent[$actionIds]['desc'],
                     "page_content" => $paramsMK
                 ];
                 $this->doCurl($data, $this->apiUrl);
@@ -263,7 +264,7 @@ Class ApiDoc
      */
     private function fileContentWriteHandle($content)
     {
-//        $res = filesize('./apilogs.txt');
+        $res = filesize(__DIR__.'/../apilogs.txt');
 //        if($res / 1024 / 1024 > $this->fileMax){
 //            echo 'The file size has exceeded the limit';
 //        }
@@ -290,11 +291,12 @@ Class ApiDoc
 
     /**
      * 数组操作
-     * @param $apiResult
-     * @param int $index
+     * @param array $apiResult 原始数组
+     * @param int $isKeep 是否保留值,0为否，1为是
+     * @param int $index 数组层级
      * @return array
      */
-    private function resultArrayHandle($apiResult, $index = 0)
+    private function resultArrayHandle($apiResult, $isKeep = 0, $index = 0)
     {
         if(empty($apiResult)){
             return [];
@@ -304,14 +306,21 @@ Class ApiDoc
         foreach ($apiResult as $k => $v) {
             $resultParamNameArr[$k]['param_name'] = $k;
             $resultParamNameArr[$k]['param_type'] = gettype($v);
+            if($isKeep){
+                if(gettype($v) == 'array'){
+                    $resultParamNameArr[$k]['param_value'] = '';
+                }else{
+                    $resultParamNameArr[$k]['param_value'] = $v;
+                }
+            }
             if(is_array($v)){
                 if(count($v) == count($v,1)){
-                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $index);
+                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $isKeep, $index);
                 }elseif(is_numeric(key($v))){
                     $v = $v[key($v)];
-                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $index);
+                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $isKeep, $index);
                 }else{
-                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $index);
+                    $resultParamNameArr[$k]['children'] = self::resultArrayHandle($v, $isKeep, $index);
                 }
                 $resultParamNameArr[$k]['level'] = $index;
                 $resultParamNameArr = array_values($resultParamNameArr);
@@ -353,7 +362,7 @@ Class ApiDoc
 
     /**
      * 数组转换
-     * @param $data
+     * @param array $data
      * @return array
      */
     private function resultArrayTransform($data)
@@ -393,7 +402,7 @@ Class ApiDoc
 
     /**
      * 数组进一步操作
-     * @param $data
+     * @param array $data
      * @return array
      */
     private function resultArrayFurtherHandle($data)
@@ -459,7 +468,7 @@ Class ApiDoc
 
     /**
      * 判断数组是否有序
-     * @param $array array 数组
+     * @param array $array 数组
      * @return int 0为无序，1为有序
      */
     private function JudegSortArray($array) {
@@ -507,6 +516,25 @@ Class ApiDoc
         }
     }
 
+    /**
+     * 转回数组
+     * @param array $array
+     * @return array $newArray
+     */
+    private function toArrayHandle($array)
+    {
+        $newArray = [];
+        foreach ($array as $k => $v) {
+            $v['param_name'] = str_replace('-', '', $v['param_name']);
+            if($v['param_type'] != 'array'){
+                $newArray[$v['param_name']] = $v['param_value'];
+            }else{
+                $newArray[$v['param_name']][] = self::toArrayHandle($v['children']);
+            }
+        }
+        return $newArray;
+    }
+    
     /**
      * 判断数组
      * @param $array
