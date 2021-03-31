@@ -131,12 +131,20 @@ Class ApiDoc
             $paramsInfo = "";
 
             // 判断参数数组
-            $keys = array_keys($apiParams);
-            $values = array_values($apiParams);
-            if ($this->judegSortArray($keys) && $this->numericArray($keys)) {
-                $apiParams = $values;
-            } else {
-                $apiParams = $keys;
+            if(count($apiParams) > 1){
+                $keys = array_keys($apiParams);
+                $values = array_values($apiParams);
+                if ($this->judegSortArray($keys) && $this->numericArray($keys)) {
+                    $apiParams = $values;
+                } else {
+                    $apiParams = $keys;
+                }
+            }else{
+                if(is_numeric(key($apiParams))){
+                    $apiParams[0] = reset($apiParams);
+                }else{
+                    $apiParams[0] = key($apiParams);
+                }
             }
             if (!empty($apiParams)) {
                 foreach ($apiParams as &$v) {
@@ -534,7 +542,7 @@ Class ApiDoc
         }
         return $newArray;
     }
-    
+
     /**
      * 判断数组
      * @param $array
