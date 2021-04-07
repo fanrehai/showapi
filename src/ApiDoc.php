@@ -131,7 +131,7 @@ Class ApiDoc
             $paramsInfo = "";
 
             // 判断参数数组
-            if(count($apiParams) > 1){
+            if(count($apiParams) == 1){
                 $keys = array_keys($apiParams);
                 $values = array_values($apiParams);
                 if ($this->judegSortArray($keys) && $this->numericArray($keys)) {
@@ -139,7 +139,8 @@ Class ApiDoc
                 } else {
                     $apiParams = $keys;
                 }
-            }else{
+            }
+            if(count($apiParams) > 1){
                 if(is_numeric(key($apiParams))){
                     $apiParams[0] = reset($apiParams);
                 }else{
