@@ -1,3 +1,0 @@
-
-{"id":"asd_bbbb","controller":"asd","action":"bbbb","method":"GET","params":["name","phone","password","city"],"desc":"这还是一个测试接口"}
-//----------------------------------------------//
